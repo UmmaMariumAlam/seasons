@@ -11,7 +11,6 @@ season = 0 #0 - winter, 1 - summer, 2 - rainy
 
 #---------winter var--------
 snowflakes = []
-xsnow = ysnow = 0
 snow_speed = 2
 snowing = True
 lightsize = 5
@@ -116,11 +115,16 @@ def midpointLine(x1, y1, x2, y2):
             x += 1
     glEnd()
 
+def convert_coordinate(x,y):
+    global W_Width, W_Height
+    a = x - (W_Width/2)
+    b = (W_Height/2) - y 
+    return a,b
 
 def draw_house_filled():
     try:
         # Fill the base of the house with brown color
-        glColor3f(0.6, 0.3, 0.1)  # Brown color
+        glColor3f(1, 0.99, 0.82)  # cream color
         for y in range(-150, -100):
             midpointLine(-100, y, -50, y)
         for y in range(-150, -20):
@@ -129,11 +133,10 @@ def draw_house_filled():
             midpointLine(30, y, 100, y)
 
         # Fill the roof of the house
-        glColor3f(0.6,0.3,0.1)  # Darker brown color
+        glColor3f(1, 0.99, 0.82)  # Darker brown color
         for y in range(-100, -50):
             x1 = -100+(y + 100)
             x2 = -50+(y + 100)
-
             midpointLine(x1, y, x2, y)
 
         for y in range(-80, 0):
@@ -141,14 +144,13 @@ def draw_house_filled():
             x2 = -100+(y + 100)
             midpointLine(x1, y, x2, y)
 
-
         # Fill the door
-        glColor3f(0.3, 0.1, 0.05)  # Dark brown color
+        glColor3f(0.5, 0, 0.125)  # burgundy color
         for y in range(-150, -110):
             midpointLine(-25, y, -5, y)
 
         # Draw the door knob
-        glColor3f(1, 0, 0)  # Red color for the door knob
+        glColor3f(0, 0, 0)  # Red color for the door knob
         glPointSize(3)
         glBegin(GL_POINTS)
         glVertex2f(-10, -130)
@@ -168,16 +170,16 @@ def draw_house_filled():
         midpointLine(xd1, y_mid, xd2, y_mid)
 
         # Outline the house as before
-        glColor3f(0, 0, 1)
+        glColor3f(0.29, 0.016, 0.016)#oxblood
         midpointLine(-100, -150, 100, -150)
         glColor3f(0.43, 0.15, 0.05)
         midpointLine(-100, -100, -50, -50)
         midpointLine(-100, -110, -50, -60)
         midpointLine(-100, -100, -100, -110)
-        glColor3f(0, 0, 1)
+       # glColor3f(0, 0, 1)
         midpointLine(-100, -150, -100, -110)
         midpointLine(-50, -20, -50, -150)
-        glColor3f(0.43, 0.15, 0.05)
+       # glColor3f(0.43, 0.15, 0.05)
         midpointLine(-55, -25, -10, 35)
         midpointLine(-55, -10, -10, 50)
         midpointLine(-55, -25, -55, -10)
@@ -187,10 +189,10 @@ def draw_house_filled():
         midpointLine(30, 0, 90, 0)
         midpointLine(110, -50, 30, -50)
         midpointLine(90, 0, 110, -50)
-        glColor3f(0, 0, 1)
+       # glColor3f(0, 0, 1)
         midpointLine(30, -150, 30, -20)
         midpointLine(100, -51, 100, -150)
-        glColor3f(1, 0, 0)
+       # glColor3f(1, 0, 0)
         midpointLine(-25, -150, -25, -110)
         midpointLine(-25, -110, -5, -110)
         midpointLine(-5, -110, -5, -150)
@@ -255,18 +257,6 @@ def field():
         y -= 1
     glEnd()
 
-def rectangle_filled(x1,y1,x2,y2,x_except = [],y_except = []):
-    y = y1
-    glColor3f(0,1,0)
-    while y<= y2:
-        for x in range(x1+1,x2):
-            if len(x_except) != 0 and len(y_except) != 0:
-               # print(x_except)           
-                if (x_except[0] <= x <= x_except[1] and y_except[0] <= y <= y_except[1]):
-                    print('last if clause',x,y)
-                    continue
-            midpointLine(x,y,x2,y)
-        y += 1
 
 
 #-------------winter specific functions--------
@@ -530,8 +520,7 @@ def display():
         elif season == 2:
             draw_raindrops() #extra addition for rain
             glColor3f(0,1,0)
-            field()
-             
+            field()           
         
         glutSwapBuffers()
     except Exception as e:
@@ -583,7 +572,22 @@ def specialKeyListener(key, x, y):
         elif key == GLUT_KEY_RIGHT:
             cloud_x += 5  # Move cloud right
             print(f"Cloud moved right to {cloud_x}")
+    glutPostRedisplay()
 
+def mouseListener(button, state, x, y):	
+    global snow_speed,season
+    if season == 0:
+        if button==GLUT_LEFT_BUTTON:
+            if(state == GLUT_DOWN):    # 		
+                if snow_speed < 20:
+                    snow_speed += 1
+                    print('snowfall increases')
+            
+        if button==GLUT_RIGHT_BUTTON:
+            if state == GLUT_DOWN: 	
+                if snow_speed >= 0:
+                    snow_speed -= 1
+                    print('snowfall decreases')
     glutPostRedisplay()
 
 
@@ -600,4 +604,5 @@ glutIdleFunc(snow_fall_updates if season == 0 else None)
 glutTimerFunc(0, timer, 0) #extra addition for rain
 glutSpecialFunc(specialKeyListener)  # Register after creating the window
 glutKeyboardFunc(keyboardListener)
+glutMouseFunc(mouseListener)
 glutMainLoop()
