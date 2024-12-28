@@ -8,6 +8,7 @@ from math import cos, sin, pi
 
 W_Width, W_Height = 500,500
 season = 0 #0 - winter, 1 - summer, 2 - rainy
+outside_house = True
 
 #---------winter var--------
 snowflakes = []
@@ -23,6 +24,8 @@ raindrops = []
 sun_y = -150
 rays_enabled = False
 cloud_x = 0
+bird_x = -50  # Initial X-coordinate of the bird
+bird_y = 100  # Initial Y-coordinate of the bird
 
 #-----------------general functions------------------
 def findZone(x1,y1,x2,y2):
@@ -227,14 +230,6 @@ def circle_symmetry(xc, yc, x, y):#for each point in zone 1, it creates points i
     for px, py in points:
         glVertex2f(px,py)
     glEnd()
-
-def circleFilled(xc,yc,r):
-    glBegin(GL_POINTS)
-    for y in range(-r,r+1):
-        x_range = int((r**2-y**2)**0.5) #x = sqr.root(r^2 - y^2)
-        for x in range(-x_range,x_range+1):
-            glVertex(xc+x,xc+y)
-    glEnd()
             
 def field():
     glPointSize(2)
@@ -417,7 +412,7 @@ def draw_sun():
         sr-=1
     if rays_enabled:
         # Draw rays
-        glColor3f(1, 0.5, 0)  # Orange rays
+        glColor3f(1, 1, 0)  # Orange rays
         for angle in range(0, 360, 30):
             x1 = 150 + 30 * cos(angle * 3.14159 / 180)
             y1 = sun_y + 30 * sin(angle * 3.14159 / 180)
@@ -454,12 +449,31 @@ def draw_cloud():
         midpointCircle(30 + cloud_x, 170, hr2)
         hr2 -= 1
 
+def draw_bird():
+    """Draw a bird at the current global position."""
+    global bird_x, bird_y
+    glColor3f(0, 0, 0)  # Black bird
+
+    # Body of the bird
+    midpointCircle(bird_x, bird_y, 5)  # Small circle for the body
+
+    # Head of the bird
+    midpointCircle(bird_x + 7, bird_y, 3)
+
+    # Wings of the bird
+    midpointLine(bird_x - 5, bird_y, bird_x - 15, bird_y + 10)  # Left wing
+    midpointLine(bird_x + 5, bird_y, bird_x + 15, bird_y + 10)  # Right wing
+
+    # Tail of the bird
+    midpointLine(bird_x - 4, bird_y - 5, bird_x - 10, bird_y - 10)
+    midpointLine(bird_x + 4, bird_y - 5, bird_x + 10, bird_y - 10)
+
 def summer_animate():
     global sun_y, rays_enabled
     if not rays_enabled:
         # Rising Phase: Move the sun up
         if sun_y < 50:  # Stop rising at a certain position
-            sun_y += 1  # Adjust speed as needed
+            sun_y += 5  # Adjust speed as needed
         else:
             rays_enabled = True  # Start displaying rays once the sun has risen
     else:
@@ -515,6 +529,7 @@ def display():
         elif season == 1:
             draw_sun()
             draw_cloud()
+            draw_bird()
             glColor3f(0,1,0)
             field()
         elif season == 2:
@@ -542,7 +557,6 @@ def keyboardListener(key, x, y):
         season = 2
         reinitialize_season()
         print("It is Rainy Season")
-
 
     if season == 0:
         if key==b'z':
@@ -574,20 +588,31 @@ def specialKeyListener(key, x, y):
             print(f"Cloud moved right to {cloud_x}")
     glutPostRedisplay()
 
-def mouseListener(button, state, x, y):	
-    global snow_speed,season
+def mouseListener(button, state, x, y):	#/#/x, y is the x-y of the screen (2D)
+    global snow_speed,season,bird_x
     if season == 0:
         if button==GLUT_LEFT_BUTTON:
-            if(state == GLUT_DOWN):    # 		
+            if(state == GLUT_DOWN):    # 		// 2 times?? in ONE click? -- solution is checking DOWN or UP
+                # print(x,y)
+                # c_X, c_y = convert_coordinate(x,y)
+                # ballx, bally = c_X, c_y
                 if snow_speed < 20:
                     snow_speed += 1
                     print('snowfall increases')
             
         if button==GLUT_RIGHT_BUTTON:
             if state == GLUT_DOWN: 	
+                # create_new = convert_coordinate(x,y)
                 if snow_speed >= 0:
                     snow_speed -= 1
                     print('snowfall decreases')
+    if season == 1:
+        """Handle mouse input to move the bird."""
+        if state == GLUT_DOWN:  # Check if the button is pressed
+            if button == GLUT_LEFT_BUTTON:  # Left mouse button
+                bird_x -= 10  # Move bird left
+            elif button == GLUT_RIGHT_BUTTON:  # Right mouse button
+                bird_x += 10  # Move bird right
     glutPostRedisplay()
 
 
